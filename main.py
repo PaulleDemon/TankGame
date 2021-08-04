@@ -8,7 +8,7 @@ screen = pygame.display.set_mode((1000, 600))
 
 running = True
 
-player = pl.Player(screen, (500, 500))
+player = pl.Tank(r"assets\playerTank.png", screen, (500, 500))
 
 
 while running:
@@ -18,6 +18,10 @@ while running:
 
         if event.type == pygame.QUIT:
             running = False
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            player.fire()
+
 
     key_press = pygame.key.get_pressed()
 
