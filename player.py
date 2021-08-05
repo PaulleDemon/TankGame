@@ -1,5 +1,6 @@
 import pygame
 import math
+from typing import Tuple
 
 
 class Tank:
@@ -42,17 +43,19 @@ class Tank:
 
 
     def keyEvent(self, key_press):
+        
+        screen_size = self.screen.get_size()
 
-        if key_press[pygame.K_a]:
+        if key_press[pygame.K_a] and self.pos_x >= 10:
             self.pos_x -= self.speed
 
-        if key_press[pygame.K_w]:
+        if key_press[pygame.K_w] and self.pos_y >= 10:
             self.pos_y -= self.speed
         
-        if key_press[pygame.K_d]:
+        if key_press[pygame.K_d] and self.pos_x <= screen_size[0] - 100:
             self.pos_x += self.speed
         
-        if key_press[pygame.K_s]:
+        if key_press[pygame.K_s] and self.pos_y <= screen_size[1]- 100:
             self.pos_y += self.speed
 
     def center(self):
@@ -95,7 +98,9 @@ class Tank:
             bullet = Bullet(self.screen, pos, self.center(), self.angle, self._fire_radius)
             self._bullets.add(bullet)
 
-
+    def pos(self) -> Tuple[float, float]:
+        return self.pos_x, self.pos_y
+        
 
 class Bullet:
 
