@@ -1,12 +1,13 @@
 import pygame
 from typing import Tuple
+import assets
 
 
 class Background:
 
     def __init__(self, img: str, screen, pos = (0, 0), speed: float = 0.3):
         
-        self.bg_image = pygame.image.load(img).convert()
+        self.bg_image = pygame.image.load(assets.BACKGROUND).convert_alpha()
         self.speed = speed
         self.bg_x, self.bg_y = pos
         self.screen = screen
