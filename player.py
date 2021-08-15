@@ -5,7 +5,7 @@ from typing import Tuple
 
 class Tank:
 
-    def __init__(self, img_path: str, screen, pos, speed: float = 0.3, fire_radius: int = 250, fire_delay: int = 500):
+    def __init__(self, img_path: str, screen, pos, speed: float = 0.5, fire_radius: int = 250, fire_delay: int = 500, fire_speed = 0.5):
         
         self.screen = screen
         self.pos_x, self.pos_y = pos
@@ -13,6 +13,7 @@ class Tank:
         self.angle = 0
         self.mouse_pos = (0, 0)
         self._fired = False
+        self.fire_speed = fire_speed
         self.fire_delay = fire_delay
         self.time_counter = fire_delay
 
@@ -95,7 +96,7 @@ class Tank:
             adj, opp, hyp = self._calcAdjHyp(self.mouse_pos)
             pos = (adj/hyp, opp/hyp)
 
-            bullet = Bullet(self.screen, pos, self.center(), self.angle, self._fire_radius)
+            bullet = Bullet(self.screen, pos, self.center(), self.angle, self._fire_radius, self.fire_speed)
             self._bullets.add(bullet)
 
     def pos(self) -> Tuple[float, float]:
@@ -104,7 +105,7 @@ class Tank:
 
 class Bullet:
 
-    def __init__(self, screen, normalpos, tankpos, angle, fire_radius: int, speed: float = 0.3):
+    def __init__(self, screen, normalpos, tankpos, angle, fire_radius: int, speed: float = 0.5):
 
         self.screen = screen
         self._destory = False
