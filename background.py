@@ -1,3 +1,5 @@
+import random
+
 import pygame
 from typing import Tuple
 from pycollision import Collision
@@ -11,6 +13,7 @@ class Background:
         self.speed = speed
         self.bg_x, self.bg_y = pos
         self.screen = screen
+        self.previous_x, self.previous_y = pos
 
     def update(self):
         self.screen.blit(self.bg_image, (self.bg_x, self.bg_y))
@@ -24,15 +27,19 @@ class Background:
 
         # print(image_rect, self.bg_x, self.bg_y, x, y)
         if 10 >= x >= self.bg_x + 10 and key_press[pygame.K_a]:
+            self.previous_x = self.bg_x
             self.bg_x += self.speed
 
         if 10 >= y >= self.bg_y + 10 and key_press[pygame.K_w]:
+            self.previous_y = self.bg_y
             self.bg_y += self.speed
 
         if screen_rect.width - 150 <= x <= self.bg_x + image_rect.width - 150 and key_press[pygame.K_d]:
+            self.previous_x = self.bg_x
             self.bg_x -= self.speed
 
         if screen_rect.height - 150 <= y <= self.bg_y + image_rect.height - 150 and key_press[pygame.K_s]:
+            self.previous_y = self.bg_y
             self.bg_y -= self.speed
 
     def getPos(self):
@@ -41,10 +48,13 @@ class Background:
     def getRect(self):
         return self.bg_image.get_rect()
 
+    def resetPreviousPos(self):
+        self.bg_x, self.bg_y = self.previous_x, self.previous_y
+
 
 class BackgroundWall:
 
-    def __init__(self, img: str, screen, bg_rect, pos=(0, 0), speed: float = 0.5, check_collision=False, split=(5, 5)):
+    def __init__(self, img: str, screen, bg_rect, pos=(0, 0), speed: float = 0.5, split=(5, 5)):
         self.bg_image = pygame.image.load(img).convert_alpha()
         self.speed = speed
         self.bg_x, self.bg_y = pos
@@ -55,21 +65,27 @@ class BackgroundWall:
 
         self._collision = False
 
-        if check_collision:
-            self.collision = Collision(img, wall_collision=True, wall_padding=(2, 2, 2, 2))
+        self.collision = Collision(img, split, wall_collision=False, wall_padding=(5, 5, 5, 5))
+        self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for x in
+                       range(len(self.collision.collision_points()))]
 
     def setPos(self, x, y):
         self.orgPos = list((x, y))
         self.bg_x, self.bg_y = x, y
+        self.collision.setSpritePos(self.bg_x, self.bg_y)
 
     def update(self, bgpos: Tuple[float, float]):
         self.bg_x = self.orgPos[0] + bgpos[0]
         self.bg_y = self.orgPos[1] + bgpos[1]
         self.screen.blit(self.bg_image, (self.bg_x, self.bg_y))
 
-    def key_event(self):
-        # todo: collision
-        pass
+        self.collision.setSpritePos(self.bg_x, self.bg_y)
+        for color, x in zip(self.colors, self.collision.collision_points()):  # uncomment this to get colourful rectangles
+            x = (x[0]+self.bg_x, x[1]+self.bg_y, x[2] - x[0], x[3] - x[1])
+            pygame.draw.rect(self.screen, color, pygame.Rect(x), width=3)
+
+    def getCollisionObject(self):
+        return self.collision
 
     def get_rect(self) -> pygame.Rect:
         return self.bg_image.get_rect()
