@@ -25,20 +25,19 @@ class Background:
         screen_rect = self.screen.get_rect()
         image_rect = self.bg_image.get_rect()
 
-        # print(image_rect, self.bg_x, self.bg_y, x, y)
-        if 10 >= x >= self.bg_x + 10 and key_press[pygame.K_a]:
+        if 50 >= x >= self.bg_x + 30 and key_press[pygame.K_a]:
             self.previous_x = self.bg_x
             self.bg_x += self.speed
 
-        if 10 >= y >= self.bg_y + 10 and key_press[pygame.K_w]:
+        if 50 >= y >= self.bg_y + 30 and key_press[pygame.K_w]:
             self.previous_y = self.bg_y
             self.bg_y += self.speed
 
-        if screen_rect.width - 150 <= x <= self.bg_x + image_rect.width - 150 and key_press[pygame.K_d]:
+        if screen_rect.width - 250 <= x <= self.bg_x + image_rect.width - 150 and key_press[pygame.K_d]:
             self.previous_x = self.bg_x
             self.bg_x -= self.speed
 
-        if screen_rect.height - 150 <= y <= self.bg_y + image_rect.height - 150 and key_press[pygame.K_s]:
+        if screen_rect.height - 250 <= y <= self.bg_y + image_rect.height - 150 and key_press[pygame.K_s]:
             self.previous_y = self.bg_y
             self.bg_y -= self.speed
 
@@ -65,7 +64,7 @@ class BackgroundWall:
 
         self._collision = False
 
-        self.collision = Collision(img, split, wall_collision=False, wall_padding=(5, 5, 5, 5))
+        self.collision = Collision(img, split, wall_collision=True, wall_padding=(1, 1, 1, 1))
         self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for x in
                        range(len(self.collision.collision_points()))]
 

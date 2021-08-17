@@ -2,6 +2,8 @@ import pygame
 import math
 from typing import Tuple
 
+import assets
+
 
 class Tank:
 
@@ -21,13 +23,14 @@ class Tank:
         self.player_image = pygame.image.load(img_path).convert_alpha()
 
         self.transformed_image = self.player_image
+        self._rect = self.player_image.get_rect()
 
         self.previous_x, self.previous_y = pos
         self._bullets = set()
         self._fire_radius = fire_radius
 
     def update(self):
-        self.screen.blit(self.transformed_image, (self.pos_x, self.pos_y))
+        self.screen.blit(self.transformed_image, self._rect)#(self.pos_x, self.pos_y))
 
         if self.time_counter > 0:
             self.time_counter -= 1
@@ -46,25 +49,31 @@ class Tank:
 
         screen_size = self.screen.get_size()
 
-        if key_press[pygame.K_a] and self.pos_x >= 10:
+        pos_x, pos_y = self.pos()
+
+        if key_press[pygame.K_a] and pos_x >= 30:
             self.previous_x = self.pos_x
             self.pos_x -= self.speed
 
-        if key_press[pygame.K_w] and self.pos_y >= 10:
+        if key_press[pygame.K_w] and pos_y >= 30:
             self.previous_y = self.pos_y
             self.pos_y -= self.speed
 
-        if key_press[pygame.K_d] and self.pos_x <= screen_size[0] - 100:
+        if key_press[pygame.K_d] and pos_x <= screen_size[0] - 100:
             self.previous_x = self.pos_x
             self.pos_x += self.speed
 
-        if key_press[pygame.K_s] and self.pos_y <= screen_size[1] - 100:
+        if key_press[pygame.K_s] and pos_y <= screen_size[1] - 100:
             self.previous_y = self.pos_y
             self.pos_y += self.speed
 
     def center(self):
         width, height = self.player_image.get_rect().width, self.player_image.get_rect().height
         return (self.pos_x * 2 + width) / 2, (self.pos_y * 2 + height) / 2
+
+    def fire_center(self):
+        center = self.center()
+        return center[0], center[1]
 
     def _calcAdjHyp(self, mousepos):
         mouse_x, mouse_y = mousepos
@@ -87,6 +96,7 @@ class Tank:
         self.mouse_pos = mousepos
         self.angle = self._calcAngle(mousepos)
         self.transformed_image = pygame.transform.rotate(self.player_image, self.angle)
+        self._rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
 
     def fire(self):
 
@@ -95,18 +105,18 @@ class Tank:
             adj, opp, hyp = self._calcAdjHyp(self.mouse_pos)
             pos = (adj / hyp, opp / hyp)
 
-            bullet = Bullet(self.screen, pos, self.center(), self.angle, self._fire_radius, self.fire_speed)
+            bullet = Bullet(self.screen, pos, self.fire_center(), self.angle, self._fire_radius, self.fire_speed)
             self._bullets.add(bullet)
 
     def getRect(self):
-        rect = self.transformed_image.get_rect()
-        return self.pos_x, self.pos_y, rect.width + self.pos_x, rect.height + self.pos_y
+        rect = self.transformed_image.get_rect(center=(self.pos_x,self.pos_y))
+        return rect[0], rect[1], rect[0]+rect[2], rect[1]+rect[3]
 
     def resetPreviousPos(self):
         self.pos_x, self.pos_y = self.previous_x, self.previous_y
 
     def pos(self) -> Tuple[float, float]:
-        return self.pos_x, self.pos_y
+        return self._rect[:2]
 
 
 class Bullet:
@@ -124,7 +134,7 @@ class Bullet:
 
         self.angle = angle
 
-        self.bullet_image = pygame.image.load(r"assets\Bullet.png").convert_alpha()
+        self.bullet_image = pygame.image.load(assets.BULLET).convert_alpha()
         self.transformed_img = self.bullet_image
 
     def update(self):

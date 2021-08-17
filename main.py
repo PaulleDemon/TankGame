@@ -1,6 +1,5 @@
 from typing import Tuple
 
-import pycollision
 import pygame
 import player as pl
 import background as bg
@@ -16,13 +15,13 @@ running = True
 
 bg_speed = 5
 
-player = pl.Tank(assets.PLAYER_TANK, screen, (250, 200), speed=5, fire_speed=5)
+player = pl.Tank(assets.PLAYER_TANK, screen, (250, 200), speed=5, fire_speed=5, fire_delay=50)
 
 background = bg.Background(assets.BACKGROUND, screen, (-800, -600), speed=bg_speed)
 
 bg_rect = background.getRect()
 
-split = (25, 25)
+split = (100, 100)
 
 backg_wall = bg.BackgroundWall(assets.BACKGROUND_WALL1, screen, bg_rect, (0, 0), speed=bg_speed, split=split)
 wall_coll1 = backg_wall.getCollisionObject()
@@ -43,9 +42,14 @@ backg_wall4.setPos(bg_rect.width-rect.width, bg_rect.height-rect.height)
 wall_coll4 = backg_wall4.getCollisionObject()
 
 
+bush = bg.BackgroundWall(assets.BUSH, screen, bg_rect, pos=(190, 100), speed=bg_speed, split=(10, 10))
+bush_collision = bush.getCollisionObject()
+
+
 def checkWallCollision(points: Tuple[int, int, int, int]):
     return any((wall_coll1.rect_collide(points)[0], wall_coll2.rect_collide(points)[0],
-               wall_coll3.rect_collide(points)[0], wall_coll4.rect_collide(points)[0]))
+               wall_coll3.rect_collide(points)[0], wall_coll4.rect_collide(points)[0],
+               bush_collision.rect_collide(points)[0]))
 
 
 while running:
@@ -70,15 +74,12 @@ while running:
     backg_wall2.update(pos)
     backg_wall3.update(pos)
     backg_wall4.update(pos)
-
-    # print(player.getRect())
+    bush.update(pos)
 
     player.keyEvent(key_press)
     player.mouseEvent(pygame.mouse.get_pos())
 
-    # print(checkWallCollision(player.getRect()))
     if checkWallCollision(player.getRect()):
-        # print("Collision")
         player.resetPreviousPos()
         background.resetPreviousPos()
 
