@@ -16,6 +16,7 @@ running = True
 bg_speed = 5
 
 player = pl.Tank(assets.PLAYER_TANK, screen, (250, 200), speed=5, fire_speed=5, fire_delay=50)
+pl.addToTank(player)
 
 background = bg.Background(assets.BACKGROUND, screen, (-800, -600), speed=bg_speed)
 
@@ -79,13 +80,14 @@ while running:
     player.keyEvent(key_press)
     player.mouseEvent(pygame.mouse.get_pos())
 
-    if checkWallCollision(player.getRect()):
+    if checkWallCollision(player.getBbox()):
         player.resetPreviousPos()
         background.resetPreviousPos()
 
-    player.update()
-
-
+    # player.update()
+    pl.checkCollision()
+    pl.update_bullets()
+    pl.updateTanks()
 
     pygame.display.update() 
 

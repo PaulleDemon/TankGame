@@ -20,13 +20,13 @@ class Tank:
         self.fire_delay = fire_delay
         self.time_counter = fire_delay
 
-        self.player_image = pygame.image.load(img_path).convert()#.convert_alpha()
+        self.player_image = pygame.image.load(img_path).convert_alpha()
 
         self.transformed_image = self.player_image
         self._rect = self.player_image.get_rect()
 
         self.previous_x, self.previous_y = pos
-        self._bullets = set()
+        # self._bullets = set()
         self._fire_radius = fire_radius
 
     def keyEvent(self, key_press):
@@ -54,20 +54,13 @@ class Tank:
     def center(self) -> Tuple[int, int]:
         return self.player_image.get_rect(center=(self.pos_x, self.pos_y)).center
 
-    # def fire_pos(self):
-    #     adj, opp, hyp = self._calcAdjHyp(self.mouse_pos)
-    #     adj, opp = adj/hyp, opp/hyp
-    #     # print(adj, opp, hyp)
-    #     # rect = self.player_image.get_rect(center=(self.pos_x, self.pos_y))
-    #     # return rect.center
-    #     return adj*2+self.pos_x + 30, opp*2+self.pos_y + 30
     def fire_pos(self):
         new_dict = 32
         x0, y0 = self.center()
         x1, y1 = self.mouse_pos
         _, _, hyp = self._calcAdjHyp(self.mouse_pos)
         ratio = new_dict / hyp
-        x, y =(1-ratio)*x0 + ratio*x1, (1-ratio)*y0 + ratio*y1
+        x, y = (1 - ratio) * x0 + ratio * x1, (1 - ratio) * y0 + ratio * y1
 
         return x, y
 
@@ -97,17 +90,19 @@ class Tank:
     def fire(self):
 
         if not self._fired:
-            print(self.fire_pos())
             self._fired = True
             adj, opp, hyp = self._calcAdjHyp(self.mouse_pos)
             n_pos = (adj / hyp, opp / hyp)
+            createBullet(self.screen, self, n_pos, self.fire_pos(), self.angle, self._fire_radius, self.fire_speed)
+            # bullet = Bullet(self.screen, n_pos, self.fire_pos(), self.angle, self._fire_radius, self.fire_speed)
+            # self._bullets.add(bullet)
 
-            bullet = Bullet(self.screen, n_pos, self.fire_pos(), self.angle, self._fire_radius, self.fire_speed)
-            self._bullets.add(bullet)
+    def getBbox(self):
+        rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
+        return rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]
 
-    def getRect(self):
-        rect = self.transformed_image.get_rect(center=(self.pos_x,self.pos_y))
-        return rect[0], rect[1], rect[0]+rect[2], rect[1]+rect[3]
+    def getRectObject(self):
+        return self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
 
     def resetPreviousPos(self):
         self.pos_x, self.pos_y = self.previous_x, self.previous_y
@@ -117,7 +112,6 @@ class Tank:
 
     def update(self):
         self.screen.blit(self.transformed_image, self._rect)
-        pygame.draw.circle(self.screen, (255, 255, 255), self.fire_pos(), 5)
         if self.time_counter > 0:
             self.time_counter -= 1
 
@@ -125,20 +119,22 @@ class Tank:
             self.time_counter = self.fire_delay
             self._fired = False
 
-        for bullet in self._bullets.copy():
-            bullet.update()
+    def colliderect(self, rect):
+        return self.getRectObject().colliderect(rect)
 
-            if bullet.destroyed():
-                self._bullets.remove(bullet)
+    def collidelist(self, lst):
+        return self.getRectObject().collidelist(lst)
 
 
 class Bullet:
 
-    def __init__(self, screen, normalpos, tankpos, angle, fire_radius: int, speed: float = 0.5):
+    def __init__(self, screen, tank_object, normalpos, tankpos, angle, fire_radius: int, speed: float = 0.5):
         self.screen = screen
         self._destory = False
         self.bullet_image = pygame.image.load(assets.BULLET).convert_alpha()
         self.transformed_img = self.bullet_image
+
+        self.tank = tank_object  # tank object from which the bullet was fired
 
         self._fire_radius = fire_radius
 
@@ -154,12 +150,65 @@ class Bullet:
         self.transformed_img = pygame.transform.rotate(self.bullet_image, self.angle)
         self.current_pos = (self.normal_pos[0] + self.current_pos[0]), (self.normal_pos[1] + self.current_pos[1])
 
-        dist = math.hypot((self.current_pos[0] - self._initial_pos[0]), (self.current_pos[1] - self._initial_pos[1]))
+        # dist = math.hypot((self.current_pos[0] - self._initial_pos[0]), (self.current_pos[1] - self._initial_pos[1]))
 
-        if dist >= self._fire_radius:
+        # if dist >= self._fire_radius:
+        print("DIST: ", self.dist())
+        if self.dist() >= self._fire_radius:
             self._destory = True
 
         self.screen.blit(self.transformed_img, self.current_pos)
 
+    def dist(self):
+        return math.hypot((self.current_pos[0] - self._initial_pos[0]), (self.current_pos[1] - self._initial_pos[1]))
+
     def destroyed(self):
         return self._destory
+
+    def getRect(self):
+        return self.transformed_img.get_rect(center=(self.current_pos))
+
+    def colliderect(self, rect):
+        return self.getRect().colliderect(rect)
+
+    def collidelist(self, lst):
+        return self.getRect().collidelist(lst)
+
+    def tankObject(self):
+        return self.tank
+
+
+bullets = set()
+tanks = set()
+
+
+def addToTank(tank):
+    tanks.add(tank)
+
+
+def updateTanks():
+    for tank in tanks:
+        tank.update()
+
+
+def checkCollision():
+    for tank in tanks.copy():
+
+        if tank.collidelist([bullet.getRect() for bullet in bullets if tank!=bullet.tankObject()]) != -1:
+            tanks.remove(tank)
+
+
+def createBullet(screen, tank_object, normal_pos, fire_pos, angle, radius, speed):
+    bullet = Bullet(screen, tank_object, normal_pos, fire_pos, angle, radius, speed)
+    bullets.add(bullet)
+
+
+def update_bullets():
+
+    for bullet in bullets.copy():
+        bullet.update()
+
+        if bullet.destroyed():
+            bullets.remove(bullet)
+
+
