@@ -51,25 +51,25 @@ class Tank:
             self.previous_y = self.pos_y
             self.pos_y += self.speed
 
-    def center(self):
-        width, height = self.player_image.get_rect().width, self.player_image.get_rect().height
-        # return (self.pos_x * 2 + width) / 2, (self.pos_y * 2 + height) / 2
+    def center(self) -> Tuple[int, int]:
         return self.player_image.get_rect(center=(self.pos_x, self.pos_y)).center
 
-    def fire_center(self):
-        rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
-        mid = 0
+    # def fire_pos(self):
+    #     adj, opp, hyp = self._calcAdjHyp(self.mouse_pos)
+    #     adj, opp = adj/hyp, opp/hyp
+    #     # print(adj, opp, hyp)
+    #     # rect = self.player_image.get_rect(center=(self.pos_x, self.pos_y))
+    #     # return rect.center
+    #     return adj*2+self.pos_x + 30, opp*2+self.pos_y + 30
+    def fire_pos(self):
+        new_dict = 32
+        x0, y0 = self.center()
+        x1, y1 = self.mouse_pos
+        _, _, hyp = self._calcAdjHyp(self.mouse_pos)
+        ratio = new_dict / hyp
+        x, y =(1-ratio)*x0 + ratio*x1, (1-ratio)*y0 + ratio*y1
 
-        # if 0 >= self.angle >= -90:
-        #     mid = rect.midtop
-        #
-        # elif -90 >= self.angle >= -180:
-        #     mid = rect.midright
-        #
-        # elif -180 >= self.angle >= 90:
-        #     mid = rect.midleft
-
-        return rect.center
+        return x, y
 
     def _calcAdjHyp(self, mousepos):
         mouse_x, mouse_y = mousepos
@@ -97,11 +97,12 @@ class Tank:
     def fire(self):
 
         if not self._fired:
+            print(self.fire_pos())
             self._fired = True
             adj, opp, hyp = self._calcAdjHyp(self.mouse_pos)
             n_pos = (adj / hyp, opp / hyp)
 
-            bullet = Bullet(self.screen, n_pos, self.fire_center(), self.angle, self._fire_radius, self.fire_speed)
+            bullet = Bullet(self.screen, n_pos, self.fire_pos(), self.angle, self._fire_radius, self.fire_speed)
             self._bullets.add(bullet)
 
     def getRect(self):
@@ -116,7 +117,7 @@ class Tank:
 
     def update(self):
         self.screen.blit(self.transformed_image, self._rect)
-        pygame.draw.circle(self.screen, (255, 255, 255), self.fire_center(), 5)
+        pygame.draw.circle(self.screen, (255, 255, 255), self.fire_pos(), 5)
         if self.time_counter > 0:
             self.time_counter -= 1
 
@@ -138,21 +139,16 @@ class Bullet:
         self._destory = False
         self.bullet_image = pygame.image.load(assets.BULLET).convert_alpha()
         self.transformed_img = self.bullet_image
-        print(tankpos)
-        print(self.transformed_img.get_rect(center=(tankpos[0], tankpos[1])).center)
-        print(self.transformed_img.get_rect(center=(tankpos[0], tankpos[1])).topleft)
 
         self._fire_radius = fire_radius
 
         self.normal_pos = normalpos[0] * speed, normalpos[1] * speed
         self._initial_pos = tankpos[0], tankpos[1]
-        # print(self.transformed_img.get_rect())
-        # self.current_pos = self.normal_pos[0] + tankpos[0], self.normal_pos[1] + tankpos[1]
+
         rect = self.transformed_img.get_rect()
         self.current_pos = tankpos[0] - rect.centerx, tankpos[1] - rect.centery
 
         self.angle = angle
-
 
     def update(self):
         self.transformed_img = pygame.transform.rotate(self.bullet_image, self.angle)
