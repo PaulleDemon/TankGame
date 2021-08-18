@@ -16,7 +16,7 @@ running = True
 
 bg_speed = 5
 
-controller = Controller(screen)
+controller = Controller(screen, spawn_pos=[(500, 300), (200, 500)])
 player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=5, fire_speed=5, fire_delay=50)
 controller.setPlayer(player)
 
@@ -59,6 +59,8 @@ def checkWallCollision(points: Tuple[int, int, int, int]):
                bush_collision.rect_collide(points)[0]))
 
 
+controller.spawnEnemy()
+
 while running:
     screen.fill((0, 0, 0))
 
@@ -76,8 +78,8 @@ while running:
     background.update()
 
     pos = background.getPos()
-
-    controller.updateObstacles(pos)
+    controller.setBgPos(pos)
+    controller.updateObstacles()
 
     player.keyEvent(key_press)
     player.mouseEvent(pygame.mouse.get_pos())

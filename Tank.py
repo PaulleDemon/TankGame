@@ -1,7 +1,8 @@
+import random
+
 import pygame
 import math
 from typing import Tuple
-
 import assets
 
 
@@ -20,16 +21,16 @@ class Tank:
         self.time_counter = fire_delay
         self.controller = controller
 
-        self.player_image = pygame.image.load(img_path).convert_alpha()
+        self.tank_image = pygame.image.load(img_path).convert_alpha()
 
-        self.transformed_image = self.player_image
-        self._rect = self.player_image.get_rect()
+        self.transformed_image = self.tank_image
+        self._rect = self.tank_image.get_rect()
 
         self.previous_x, self.previous_y = pos
         self._fire_radius = fire_destroy_radius
 
     def center(self) -> Tuple[int, int]:
-        return self.player_image.get_rect(center=(self.pos_x, self.pos_y)).center
+        return self.tank_image.get_rect(center=(self.pos_x, self.pos_y)).center
 
     def fire_pos(self, pos):
         new_dict = 32
@@ -52,8 +53,9 @@ class Tank:
 
         return adj, opp, hyp
 
-    def _calcAngle(self, mousepos):
-        adj, opp, hyp = self._calcAdjHyp(mousepos)
+    def _calcAngle(self, pos):
+        """ calculates angle towards a point """
+        adj, opp, hyp = self._calcAdjHyp(pos)
         nx, ny = adj / hyp, opp / hyp  # normalize
 
         return math.degrees(math.atan2(-nx, -ny))
@@ -96,11 +98,45 @@ class Tank:
         return self.getRectObject().collidelist(lst)
 
 
-class Enemy(Tank):
+class Enemy(Tank):  # todo: complete this, move the enemy with the background else it will follow the player
 
-    def __init__(self, follow_radius, fire_radius, *args, **kwargs):
+    def __init__(self, follow_radius, fire_radius, bg_pos=(0, 0), *args, **kwargs):
         super(Enemy, self).__init__(*args, **kwargs)
-        pass
+        self.change_angle()
+        self.steps = 0
+        self.max_steps = 0
+
+        self.direction_x, self.direction_y = (0, 0)
+        self.bg_x, self.bg_y = bg_pos
+
+    def change_angle(self):
+        self.angle = random.randint(0, 360)
+        self.direction_x = math.cos(math.radians(self.angle)) * 0.2
+        self.direction_y = math.sin(math.radians(self.angle)) * 0.2
+
+        self.transformed_image = pygame.transform.rotate(self.tank_image, self.angle)
+
+    def setBgPos(self, bgpos):
+        self.bg_x, self.bg_y = bgpos
+
+    def moveRandom(self):
+
+        self.pos_x = self.direction_x + self.pos_x #+ self.bg_x
+        self.pos_y = self.direction_y + self.pos_y #+ self.bg_y
+        self.steps += 1
+
+        if self.steps > self.max_steps:
+            self.steps = 0
+            self.max_steps = random.randint(50, 300)
+            self.change_angle()
+
+        self._rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
+
+    def update(self):
+        super(Enemy, self).update()
+        # print(self.getRectObject())
+        print(self.getRectObject())
+        self.moveRandom()
 
     def moveTo(self, pos):
         pass
@@ -137,7 +173,7 @@ class Player(Tank):
     def mouseEvent(self, mousepos):
         self.mouse_pos = mousepos
         self.angle = self._calcAngle(mousepos)
-        self.transformed_image = pygame.transform.rotate(self.player_image, self.angle)
+        self.transformed_image = pygame.transform.rotate(self.tank_image, self.angle)
         self._rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
 
 

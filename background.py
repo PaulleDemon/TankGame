@@ -4,7 +4,7 @@ import pygame
 from typing import Tuple
 from pycollision import Collision
 
-
+# fixme: The background goes well outside the rect (black area visible)
 class Background:
 
     def __init__(self, img: str, screen, pos=(0, 0), speed: float = 0.5):

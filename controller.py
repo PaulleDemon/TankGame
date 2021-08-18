@@ -1,4 +1,6 @@
+import assets
 from Tank import Bullet, Enemy
+from random import choice
 
 
 class Controller:
@@ -8,12 +10,17 @@ class Controller:
     player = None
     screen = None
     obstacles = set()
+    bg_x, bg_y = (0, 0) # background position
 
-    def __init__(self, screen):
+    def __init__(self, screen, spawn_pos: list):
         self.screen = screen
+        self.spwan_lst = spawn_pos
 
     def setPlayer(self, tank):
         self.player = tank
+
+    def setBgPos(self, bgpos):
+        self.bg_x, self.bg_y = bgpos
 
     def addObstacle(self, obstacle, collidObj):
         self.obstacles.add((obstacle, collidObj))
@@ -22,14 +29,18 @@ class Controller:
         bullet = Bullet(self.screen, tank_object, normal_pos, fire_pos, angle, radius, speed)
         self.bullets.add(bullet)
 
+    def getPlayerPos(self):
+        return self.player.pos()
+
     def updateTanks(self):
         self.player.update()
         for tank in self.enemies:
+            tank.setBgPos((self.bg_x, self.bg_y))
             tank.update()
 
-    def updateObstacles(self, pos):
+    def updateObstacles(self):
         for obs, _ in self.obstacles:
-            obs.update(pos)
+            obs.update((self.bg_x, self.bg_y))
 
     def checkCollision(self):
         """ checks for collision between tank, bullets and obstacles """
@@ -65,5 +76,9 @@ class Controller:
         self.updateTanks()
 
     def spawnEnemy(self):
-        enemy = Enemy() # todo: from here
+
+        pos = choice(self.spwan_lst)
+        print(pos)
+        enemy = Enemy(follow_radius=250, fire_radius=100, pos=pos,
+                      screen=self.screen, img_path=assets.ENEMY_TANK, controller=self) # todo: from here
         self.enemies.add(enemy)
