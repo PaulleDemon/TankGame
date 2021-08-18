@@ -1,7 +1,8 @@
 from typing import Tuple
 
 import pygame
-import player as pl
+import Tank as pl
+from controller import Controller
 import background as bg
 import assets
 
@@ -15,8 +16,9 @@ running = True
 
 bg_speed = 5
 
-player = pl.Tank(assets.PLAYER_TANK, screen, (250, 200), speed=5, fire_speed=5, fire_delay=50)
-pl.addToTank(player)
+controller = Controller(screen)
+player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=5, fire_speed=5, fire_delay=50)
+controller.setPlayer(player)
 
 background = bg.Background(assets.BACKGROUND, screen, (-800, -600), speed=bg_speed)
 
@@ -46,6 +48,10 @@ wall_coll4 = backg_wall4.getCollisionObject()
 bush = bg.BackgroundWall(assets.BUSH, screen, bg_rect, pos=(190, 100), speed=bg_speed, split=(10, 10))
 bush_collision = bush.getCollisionObject()
 
+for wall in [(backg_wall, wall_coll1), (backg_wall2, wall_coll2), (backg_wall3, wall_coll3),
+             (backg_wall4, wall_coll4)]:
+    controller.addObstacle(*wall)
+
 
 def checkWallCollision(points: Tuple[int, int, int, int]):
     return any((wall_coll1.rect_collide(points)[0], wall_coll2.rect_collide(points)[0],
@@ -62,7 +68,7 @@ while running:
             running = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            player.fire()
+            player.fire(event.pos)
 
     key_press = pygame.key.get_pressed()
 
@@ -71,11 +77,7 @@ while running:
 
     pos = background.getPos()
 
-    backg_wall.update(pos)
-    backg_wall2.update(pos)
-    backg_wall3.update(pos)
-    backg_wall4.update(pos)
-    bush.update(pos)
+    controller.updateObstacles(pos)
 
     player.keyEvent(key_press)
     player.mouseEvent(pygame.mouse.get_pos())
@@ -84,10 +86,7 @@ while running:
         player.resetPreviousPos()
         background.resetPreviousPos()
 
-    # player.update()
-    pl.checkCollision()
-    pl.update_bullets()
-    pl.updateTanks()
+    controller.updatePlayers()
 
     pygame.display.update() 
 
