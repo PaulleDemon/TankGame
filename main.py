@@ -69,8 +69,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             player.fire(event.pos)
+
+        if event.type == pygame.KEYDOWN:
+            controller.setBgPosChanged(True)
+
+        if event.type == pygame.KEYUP:
+            controller.setBgPosChanged(False)
 
     key_press = pygame.key.get_pressed()
 
@@ -78,7 +84,7 @@ while running:
     background.update()
 
     pos = background.getPos()
-    controller.setBgPos(pos)
+    controller.setBgPos(pos, background.previousPos())
     controller.updateObstacles()
 
     player.keyEvent(key_press)

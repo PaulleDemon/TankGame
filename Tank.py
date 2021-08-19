@@ -103,40 +103,81 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
     def __init__(self, follow_radius, fire_radius, bg_pos=(0, 0), *args, **kwargs):
         super(Enemy, self).__init__(*args, **kwargs)
         self.change_angle()
-        self.steps = 0
-        self.max_steps = 0
+        self.start_time = pygame.time.get_ticks()
+        self.max_time = 100
+
+        self.follow_radius = follow_radius
+        self.fire_radius = fire_radius
 
         self.direction_x, self.direction_y = (0, 0)
         self.bg_x, self.bg_y = bg_pos
+        self.org_x, self.org_y = self.pos_x, self.pos_y
+
+        self.follow_player = False
 
     def change_angle(self):
-        self.angle = random.randint(0, 360)
-        self.direction_x = math.cos(math.radians(self.angle)) * 0.2
-        self.direction_y = math.sin(math.radians(self.angle)) * 0.2
+        self.direction_x = math.cos(math.radians(self.angle+90)) * 0.2
+        self.direction_y = math.sin(math.radians(self.angle-90)) * 0.2
+
+        # print(self.angle, math.cos(math.radians(self.angle+90)),  math.sin(math.radians(self.angle+90)))
 
         self.transformed_image = pygame.transform.rotate(self.tank_image, self.angle)
 
     def setBgPos(self, bgpos):
         self.bg_x, self.bg_y = bgpos
 
-    def moveRandom(self):
+    def moveRandom(self, playerpos):
 
-        self.pos_x = self.direction_x + self.pos_x #+ self.bg_x
-        self.pos_y = self.direction_y + self.pos_y #+ self.bg_y
-        self.steps += 1
+        # self.pos_x, self.pos_y = self.org_x + self.bg_x, self.org_y + self.bg_y
+        # print((self.pos_x, self.pos_y), (self.bg_x, self.bg_y))
+        # print(pygame.time.get_ticks() - self.start_time, self.max_time)
+        self.check_player_radius(playerpos)
+        if not self.follow_player and pygame.time.get_ticks() - self.start_time > self.max_time:
+            print("CHANGING")
+            self.start_time = pygame.time.get_ticks()
+            self.max_time = random.randint(5000, 8000)
+            self.angle = random.randint(0, 360)
 
-        if self.steps > self.max_steps:
-            self.steps = 0
-            self.max_steps = random.randint(50, 300)
-            self.change_angle()
+        else:
+            pass
+            # self.start_time = pygame.time.get_ticks()
+
+        self.change_angle()
+
+        _, _, hyp = self._calcAdjHyp(playerpos)
+        # print(hyp)
+        if hyp > 100:
+            self.pos_x = self.direction_x + self.pos_x  # + self.bg_x
+            self.pos_y = self.direction_y + self.pos_y  # + self.bg_y
 
         self._rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
 
-    def update(self):
+    def check_player_radius(self, playerpos):
+        follow_radius = self.in_circle(*playerpos, self.follow_radius)
+        fire_radius = self.in_circle(*playerpos, self.fire_radius)
+
+        if follow_radius:
+            # print("FOLLOW")
+            self.follow_player = True
+            self.angle = self._calcAngle(playerpos)
+
+            if fire_radius:
+                # print("Fire")
+                self.fire(playerpos)
+
+        else:
+            self.follow_player = False
+
+    def in_circle(self, x, y, radius):
+        center_x, center_y = self.center()
+        dist = (center_x-x) ** 2 + (center_y-y) ** 2
+        return dist < radius**2
+
+    def update(self, playerpos):
         super(Enemy, self).update()
         # print(self.getRectObject())
-        print(self.getRectObject())
-        self.moveRandom()
+        # print(self.getRectObject())
+        self.moveRandom(playerpos)
 
     def moveTo(self, pos):
         pass
@@ -195,10 +236,9 @@ class Bullet:
         rect = self.transformed_img.get_rect()
         self.current_pos = tankpos[0] - rect.centerx, tankpos[1] - rect.centery
 
-        self.angle = angle
+        self.transformed_img = pygame.transform.rotate(self.bullet_image, angle)
 
     def update(self):
-        self.transformed_img = pygame.transform.rotate(self.bullet_image, self.angle)
         self.current_pos = (self.normal_pos[0] + self.current_pos[0]), (self.normal_pos[1] + self.current_pos[1])
 
         if self.dist() >= self._fire_radius:

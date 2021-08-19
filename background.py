@@ -5,6 +5,9 @@ from typing import Tuple
 from pycollision import Collision
 
 # fixme: The background goes well outside the rect (black area visible)
+# fixme: sometimes the background doesn't move
+
+
 class Background:
 
     def __init__(self, img: str, screen, pos=(0, 0), speed: float = 0.5):
@@ -46,6 +49,9 @@ class Background:
 
     def getRect(self):
         return self.bg_image.get_rect()
+
+    def previousPos(self):
+        return self.previous_x, self.previous_y
 
     def resetPreviousPos(self):
         self.bg_x, self.bg_y = self.previous_x, self.previous_y
