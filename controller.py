@@ -34,6 +34,9 @@ class Controller:
     def getPlayerPos(self):
         return self.player.pos()
 
+    def setBgPosChanged(self, changed: bool):
+        self.bg_pos_changed = changed
+
     def updateTanks(self):
         self.player.update()
 
@@ -44,12 +47,19 @@ class Controller:
             tank.setBgPos((bg_x, bg_y))
             tank.update(self.player.center())
 
-    def setBgPosChanged(self, changed: bool):
-        self.bg_pos_changed = changed
-
     def updateObstacles(self):
         for obs, _ in self.obstacles:
             obs.update((self.bg_x, self.bg_y))
+
+    def update_bullets(self):
+
+        bg_x, bg_y = self.bg_x - self.prev_bg_x, self.bg_y - self.prev_bg_y
+
+        for bullet in self.bullets.copy():
+            bullet.update((bg_x, bg_y))
+
+            if bullet.destroyed():
+                self.bullets.remove(bullet)
 
     def checkCollision(self):
         """ checks for collision between tank, bullets and obstacles """
@@ -64,6 +74,10 @@ class Controller:
                 if collid.rect_collide(enemy.getBbox())[0]:
                     enemy.change_angle()
 
+            if self.player.colliderect(enemy.getRectObject()):
+                self.player.resetPreviousPos()
+                enemy.resetPreviousPos()
+
         for bullet in self.bullets.copy():
             for tank in self.enemies.copy():
                 if tank != bullet.tankObject() and tank.colliderect(bullet.getRect()):
@@ -75,24 +89,16 @@ class Controller:
                 self.bullets.remove(bullet)
                 print("HIT")
 
-    def update_bullets(self):
-
-        for bullet in self.bullets.copy():
-            bullet.update()
-
-            if bullet.destroyed():
-                self.bullets.remove(bullet)
-
-    def updatePlayers(self):
-
-        self.checkCollision()
+    def update(self):
         self.update_bullets()
         self.updateTanks()
+        self.updateObstacles()
+        self.checkCollision()
 
     def spawnEnemy(self):
 
         pos = choice(self.spwan_lst)
         print(pos)
-        enemy = Enemy(follow_radius=250, fire_radius=150, pos=pos,
-                      screen=self.screen, img_path=assets.ENEMY_TANK, controller=self) # todo: from here
+        enemy = Enemy(follow_radius=550, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
+                      controller=self, speed=self.player.speed/2, fire_speed=self.player.fire_speed) # todo: from here
         self.enemies.add(enemy)

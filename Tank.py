@@ -9,7 +9,7 @@ import assets
 class Tank:
 
     def __init__(self, img_path: str, screen, pos, controller, speed: float = 0.5,
-                 fire_destroy_radius: int = 250, fire_delay: int = 500, fire_speed=0.5):
+                 fire_radius: int = 250, fire_delay: int = 500, fire_speed=0.5):
 
         self.screen = screen
         self.pos_x, self.pos_y = pos
@@ -27,7 +27,7 @@ class Tank:
         self._rect = self.tank_image.get_rect()
 
         self.previous_x, self.previous_y = pos
-        self._fire_radius = fire_destroy_radius
+        self.fire_radius = fire_radius
 
     def center(self) -> Tuple[int, int]:
         return self.tank_image.get_rect(center=(self.pos_x, self.pos_y)).center
@@ -56,6 +56,9 @@ class Tank:
     def _calcAngle(self, pos):
         """ calculates angle towards a point """
         adj, opp, hyp = self._calcAdjHyp(pos)
+        if hyp == 0:
+            hyp = 1
+
         nx, ny = adj / hyp, opp / hyp  # normalize
 
         return math.degrees(math.atan2(-nx, -ny))
@@ -67,11 +70,10 @@ class Tank:
             adj, opp, hyp = self._calcAdjHyp(pos)
             n_pos = (adj / hyp, opp / hyp)
             self.controller.createBullet(self, n_pos, self.fire_pos(pos), self.angle,
-                                         self._fire_radius, self.fire_speed)
+                                         self.fire_radius, self.fire_speed)
 
     def getBbox(self):
         rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
-        print(rect)
         return rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]
 
     def getRectObject(self):
@@ -99,16 +101,15 @@ class Tank:
         return self.getRectObject().collidelist(lst)
 
 
-class Enemy(Tank):  # todo: complete this, move the enemy with the background else it will follow the player
+class Enemy(Tank):
 
-    def __init__(self, follow_radius, fire_radius, bg_pos=(0, 0), *args, **kwargs):
+    def __init__(self, follow_radius, bg_pos=(0, 0), *args, **kwargs):
         super(Enemy, self).__init__(*args, **kwargs)
         self.change_angle()
         self.start_time = pygame.time.get_ticks()
         self.max_time = 100
 
         self.follow_radius = follow_radius
-        self.fire_radius = fire_radius
 
         self.direction_x, self.direction_y = (0, 0)
         self.bg_x, self.bg_y = bg_pos
@@ -117,10 +118,8 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
         self.follow_player = False
 
     def change_angle(self):
-        self.direction_x = math.cos(math.radians(self.angle+90)) * 0.2
-        self.direction_y = math.sin(math.radians(self.angle-90)) * 0.2
-
-        # print(self.angle, math.cos(math.radians(self.angle+90)),  math.sin(math.radians(self.angle+90)))
+        self.direction_x = math.cos(math.radians(self.angle+90)) * self.speed
+        self.direction_y = math.sin(math.radians(self.angle-90)) * self.speed
 
         self.transformed_image = pygame.transform.rotate(self.tank_image, self.angle)
 
@@ -129,18 +128,12 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
 
     def moveRandom(self, playerpos):
 
-        print((self.pos_x, self.pos_y), (self.bg_x, self.bg_y))
-
         self.check_player_radius(playerpos)
         if not self.follow_player and pygame.time.get_ticks() - self.start_time > self.max_time:
-            # print("CHANGING")
-            self.start_time = pygame.time.get_ticks()
-            self.max_time = random.randint(5000, 8000)
-            self.angle = random.randint(0, 360)
 
-        else:
-            pass
-            # self.start_time = pygame.time.get_ticks()
+            self.start_time = pygame.time.get_ticks()
+            self.max_time = random.randint(15000, 18000)
+            self.angle = random.randint(0, 360)
 
         self.change_angle()
 
@@ -174,8 +167,6 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
 
     def update(self, playerpos):
         super(Enemy, self).update()
-        # print(self.getRectObject())
-        # print(self.getRectObject())
         self.moveRandom(playerpos)
 
     def moveTo(self, pos):
@@ -194,20 +185,18 @@ class Player(Tank):
 
         pos_x, pos_y = self.pos()
 
+        self.previous_x, self.previous_y = self.pos_x, self.pos_y
+
         if key_press[pygame.K_a] and pos_x >= 30:
-            self.previous_x = self.pos_x
             self.pos_x -= self.speed
 
         if key_press[pygame.K_w] and pos_y >= 30:
-            self.previous_y = self.pos_y
             self.pos_y -= self.speed
 
         if key_press[pygame.K_d] and pos_x <= screen_size[0] - 100:
-            self.previous_x = self.pos_x
             self.pos_x += self.speed
 
         if key_press[pygame.K_s] and pos_y <= screen_size[1] - 100:
-            self.previous_y = self.pos_y
             self.pos_y += self.speed
 
     def mouseEvent(self, mousepos):
@@ -237,8 +226,9 @@ class Bullet:
 
         self.transformed_img = pygame.transform.rotate(self.bullet_image, angle)
 
-    def update(self):
-        self.current_pos = (self.normal_pos[0] + self.current_pos[0]), (self.normal_pos[1] + self.current_pos[1])
+    def update(self, bg_pos: Tuple[int, int]):
+        self.current_pos = (self.normal_pos[0] + self.current_pos[0] + bg_pos[0]), \
+                           (self.normal_pos[1] + self.current_pos[1] + bg_pos[1])
 
         if self.dist() >= self._fire_radius:
             self._destory = True

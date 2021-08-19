@@ -4,7 +4,6 @@ import pygame
 from typing import Tuple
 from pycollision import Collision
 
-# fixme: The background goes well outside the rect (black area visible)
 # fixme: sometimes the background doesn't move
 
 
@@ -31,19 +30,19 @@ class Background:
 
         self.pre_x, self.pre_y = self.bg_x, self.bg_y
 
-        if 50 >= x >= self.bg_x + 30 and key_press[pygame.K_a]:
+        if 150 >= x >= self.bg_x + 150 and key_press[pygame.K_a]:
             self.previous_x = self.bg_x
             self.bg_x += self.speed
 
-        if 50 >= y >= self.bg_y + 30 and key_press[pygame.K_w]:
+        if 150 >= y >= self.bg_y + 150 and key_press[pygame.K_w]:
             self.previous_y = self.bg_y
             self.bg_y += self.speed
 
-        if screen_rect.width - 250 <= x <= self.bg_x + image_rect.width - 150 and key_press[pygame.K_d]:
+        if screen_rect.width - 350 <= x <= self.bg_x + image_rect.width - 250 and key_press[pygame.K_d]:
             self.previous_x = self.bg_x
             self.bg_x -= self.speed
 
-        if screen_rect.height - 250 <= y <= self.bg_y + image_rect.height - 150 and key_press[pygame.K_s]:
+        if screen_rect.height - 350 <= y <= self.bg_y + image_rect.height - 250 and key_press[pygame.K_s]:
             self.previous_y = self.bg_y
             self.bg_y -= self.speed
 
@@ -55,9 +54,6 @@ class Background:
 
     def getRect(self):
         return self.bg_image.get_rect()
-
-    # def previousPos(self):
-    #     return self.previous_x, self.previous_y
 
     def previousPos(self):
         return self.pre_x, self.pre_y
