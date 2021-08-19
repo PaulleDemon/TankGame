@@ -12,7 +12,6 @@ class Controller:
     obstacles = set()
     bg_x, bg_y = (0, 0) # background position
     prev_bg_x, prev_bg_y = (0, 0) # previous background position
-    bg_pos_changed = False
 
     def __init__(self, screen, spawn_pos: list):
         self.screen = screen
@@ -37,11 +36,8 @@ class Controller:
 
     def updateTanks(self):
         self.player.update()
-        if self.bg_pos_changed:
-            bg_x, bg_y = self.bg_x - self.prev_bg_x, self.bg_y - self.prev_bg_y
 
-        else:
-            bg_x, bg_y = 0, 0
+        bg_x, bg_y = self.bg_x - self.prev_bg_x, self.bg_y - self.prev_bg_y
 
         for tank in self.enemies:
 

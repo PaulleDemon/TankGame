@@ -72,20 +72,14 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             player.fire(event.pos)
 
-        if event.type == pygame.KEYDOWN:
-            controller.setBgPosChanged(True)
-
         if event.type == pygame.KEYUP:
-            controller.setBgPosChanged(False)
-
+           pass
     key_press = pygame.key.get_pressed()
 
+    background.resetprevPos()
     background.keyEvent(key_press, player.pos())
-    background.update()
 
     pos = background.getPos()
-    controller.setBgPos(pos, background.previousPos())
-    controller.updateObstacles()
 
     player.keyEvent(key_press)
     player.mouseEvent(pygame.mouse.get_pos())
@@ -93,7 +87,11 @@ while running:
     if checkWallCollision(player.getBbox()):
         player.resetPreviousPos()
         background.resetPreviousPos()
+        background.resetprevPos()
 
+    controller.setBgPos(background.getPos(), background.previousPos())
+    background.update()
+    controller.updateObstacles()
     controller.updatePlayers()
 
     pygame.display.update() 

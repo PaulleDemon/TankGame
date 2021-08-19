@@ -21,7 +21,7 @@ class Tank:
         self.time_counter = fire_delay
         self.controller = controller
 
-        self.tank_image = pygame.image.load(img_path).convert_alpha()
+        self.tank_image = pygame.image.load(img_path).convert()#.convert_alpha()
 
         self.transformed_image = self.tank_image
         self._rect = self.tank_image.get_rect()
@@ -71,6 +71,7 @@ class Tank:
 
     def getBbox(self):
         rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
+        print(rect)
         return rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]
 
     def getRectObject(self):
@@ -128,12 +129,11 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
 
     def moveRandom(self, playerpos):
 
-        # self.pos_x, self.pos_y = self.org_x + self.bg_x, self.org_y + self.bg_y
-        # print((self.pos_x, self.pos_y), (self.bg_x, self.bg_y))
-        # print(pygame.time.get_ticks() - self.start_time, self.max_time)
+        print((self.pos_x, self.pos_y), (self.bg_x, self.bg_y))
+
         self.check_player_radius(playerpos)
         if not self.follow_player and pygame.time.get_ticks() - self.start_time > self.max_time:
-            print("CHANGING")
+            # print("CHANGING")
             self.start_time = pygame.time.get_ticks()
             self.max_time = random.randint(5000, 8000)
             self.angle = random.randint(0, 360)
@@ -145,10 +145,11 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
         self.change_angle()
 
         _, _, hyp = self._calcAdjHyp(playerpos)
-        # print(hyp)
+
         if hyp > 100:
-            self.pos_x = self.direction_x + self.pos_x  # + self.bg_x
-            self.pos_y = self.direction_y + self.pos_y  # + self.bg_y
+            self.previous_x, self.previous_y = self.pos_x, self.pos_y
+            self.pos_x = self.direction_x + self.pos_x + self.bg_x
+            self.pos_y = self.direction_y + self.pos_y + self.bg_y
 
         self._rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
 
@@ -157,12 +158,10 @@ class Enemy(Tank):  # todo: complete this, move the enemy with the background el
         fire_radius = self.in_circle(*playerpos, self.fire_radius)
 
         if follow_radius:
-            # print("FOLLOW")
             self.follow_player = True
             self.angle = self._calcAngle(playerpos)
 
             if fire_radius:
-                # print("Fire")
                 self.fire(playerpos)
 
         else:

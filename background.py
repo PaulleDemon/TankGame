@@ -17,6 +17,7 @@ class Background:
         self.bg_x, self.bg_y = pos
         self.screen = screen
         self.previous_x, self.previous_y = pos
+        self.pre_x, self.pre_y = pos
 
     def update(self):
         self.screen.blit(self.bg_image, (self.bg_x, self.bg_y))
@@ -27,6 +28,8 @@ class Background:
 
         screen_rect = self.screen.get_rect()
         image_rect = self.bg_image.get_rect()
+
+        self.pre_x, self.pre_y = self.bg_x, self.bg_y
 
         if 50 >= x >= self.bg_x + 30 and key_press[pygame.K_a]:
             self.previous_x = self.bg_x
@@ -44,14 +47,20 @@ class Background:
             self.previous_y = self.bg_y
             self.bg_y -= self.speed
 
+    def resetprevPos(self):
+        self.pre_x, self.pre_y = self.bg_x, self.bg_y
+
     def getPos(self):
         return self.bg_x, self.bg_y
 
     def getRect(self):
         return self.bg_image.get_rect()
 
+    # def previousPos(self):
+    #     return self.previous_x, self.previous_y
+
     def previousPos(self):
-        return self.previous_x, self.previous_y
+        return self.pre_x, self.pre_y
 
     def resetPreviousPos(self):
         self.bg_x, self.bg_y = self.previous_x, self.previous_y
