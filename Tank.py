@@ -100,6 +100,9 @@ class Tank:
     def collidelist(self, lst):
         return self.getRectObject().collidelist(lst)
 
+    def setPos(self, pos):
+        self.pos_x, self.pos_y = pos
+
 
 class Enemy(Tank):
 

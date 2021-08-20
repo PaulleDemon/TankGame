@@ -1,5 +1,3 @@
-import pygame.mixer
-
 import assets
 from Tank import Bullet, Enemy
 from random import choice
@@ -78,7 +76,6 @@ class Controller:
                     break
 
         for enemy in self.enemies:
-            # print(enemy.getRectObject())
             for _, collid in self.obstacles:
                 if collid.rect_collide(enemy.getBbox())[0]:
                     enemy.change_angle()
@@ -100,8 +97,6 @@ class Controller:
                 self.bullets.remove(bullet)
                 self.lives -= 1
 
-        # if self.lives == 0:
-        #     del self.player
 
     def getEnemyCount(self):
         return len(self.enemies)
@@ -118,9 +113,9 @@ class Controller:
     def spawnEnemy(self):
 
         pos = choice(self.spawn_lst)
-        enemy = Enemy(follow_radius=450, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
+        enemy = Enemy(follow_radius=500, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
                       controller=self, speed=self.player.speed/2, fire_speed=self.player.fire_speed,
-                      fire_delay=50)
+                      fire_delay=50, fire_radius=300)
         self.enemies.add(enemy)
 
     def getLives(self):

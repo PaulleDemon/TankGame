@@ -61,6 +61,8 @@ class Background:
     def resetPreviousPos(self):
         self.bg_x, self.bg_y = self.previous_x, self.previous_y
 
+    def setPos(self, pos):
+        self.bg_x, self.bg_y = pos
 
 class BackgroundWall:
 

@@ -20,15 +20,18 @@ def update_spawn_pos():
     spawn_lst = [(bg_x + x[0], bg_y + x[1]) for x in spawn_lst]
 
 
-time = 0
-max_enemy = 5
-
-# score_font = pygame.font.SysFont('Consolas', 30)
-#
 def main():
 
-    global running, max_enemy, time
+    global running
+
+    time = 0
+    max_enemy = 5
     game_over = False
+    score = 0
+
+    time_rect = pygame.Rect(50, 50, 100, 100)
+    score_rect = pygame.Rect(50, 50, 100, 100)
+
     while running:
         screen.fill((0, 0, 0))
 
@@ -39,6 +42,11 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
                 player.fire(event.pos)
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and game_over:
+                game_over = False
+                score = 0
+                time = 0
 
         if not game_over:
             key_press = pygame.key.get_pressed()
@@ -66,6 +74,7 @@ def main():
 
             if controller.getLives() == 0:
                 game_over = True
+                score = controller.getScore()
                 controller.reset()
 
             update_spawn_pos()
@@ -77,8 +86,15 @@ def main():
         for x in range(controller.getLives()):
             screen.blit(life_image, (50 + ((life_image.get_width() + 10) * x), 10))
 
+        time_rect = screen.blit(score_font.render(f"{time}", True, (255, 255, 255)),
+                                (screen.get_width()-time_rect.width-100, 20))
+        score_rect = screen.blit(score_font.render(f"Kills: {controller.getScore()}", True, (255, 255, 255)),
+                                 (screen.get_width()-score_rect.width-100, 50))
+
         if game_over:
-            screen.blit(game_over_font.render("GAME OVER", True, (255, 255, 255)), (100, 500))
+            screen.blit(game_over_font.render("GAME OVER", True, (255, 255, 255)), (300, 50))
+            screen.blit(game_over_font.render(f"SCORE: {score}", True, (255, 255, 255)), (350, 200))
+            screen.blit(game_over_font.render("Click anywhere to restart", True, (255, 255, 255)), (200, 300))
 
         pygame.display.update()
 
@@ -99,7 +115,8 @@ if __name__ == "__main__":
 
     controller = Controller(screen, lives=lives)
     player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=5, fire_speed=5,
-                       fire_delay=50)
+                       fire_delay=50, fire_radius=320)
+
     controller.setPlayer(player)
 
     background = bg.Background(assets.BACKGROUND, screen, (-800, -600), speed=bg_speed)
@@ -141,4 +158,5 @@ if __name__ == "__main__":
     controller.setSpawnlst(spawn_lst)
 
     game_over_font = pygame.font.SysFont('Times', 50, True)
+    score_font = pygame.font.SysFont('Consolas', 30)
     main()
