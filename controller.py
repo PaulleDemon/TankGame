@@ -15,13 +15,17 @@ class Controller:
     obstacles = set()
     bg_x, bg_y = (0, 0) # background position
     prev_bg_x, prev_bg_y = (0, 0) # previous background position
-    bg_rect = 100
     lives = 1
+    score = 0
 
-    def __init__(self, screen, spawn_pos: list, lives):
+    def __init__(self, screen, spawn_pos=None, lives=0):
+        if spawn_pos is None:
+            spawn_pos = []
+
         self.screen = screen
         self.spawn_lst = spawn_pos
         self.lives = lives
+        self.max_lives = lives
 
     def setPlayer(self, tank):
         self.player = tank
@@ -65,9 +69,6 @@ class Controller:
             if bullet.destroyed():
                 self.bullets.remove(bullet)
 
-    def setBgRect(self, rect):
-        self.bg_rect = rect
-
     def checkCollision(self):
         """ checks for collision between tank, bullets and obstacles """
         for bullet in self.bullets.copy():
@@ -92,6 +93,7 @@ class Controller:
                 if bullet.tankObject() == self.player and tank.colliderect(bullet.getRect()):
                     self.enemies.remove(tank)
                     self.bullets.remove(bullet)
+                    self.score += 1
                     break
 
             if bullet.tankObject() != self.player and self.player.colliderect(bullet.getRect()):
@@ -115,14 +117,21 @@ class Controller:
 
     def spawnEnemy(self):
 
-        # bg_x, bg_y = self.bg_x - self.prev_bg_y, self.bg_y - self.prev_bg_y
-        # self.spawn_lst = [(x + bg_x, y + bg_y) for x, y in self.spawn_lst]
-        # print(self.spawn_lst)
         pos = choice(self.spawn_lst)
-        enemy = Enemy(follow_radius=50, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
+        enemy = Enemy(follow_radius=450, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
                       controller=self, speed=self.player.speed/2, fire_speed=self.player.fire_speed,
-                      fire_delay=50)  # todo: from here
+                      fire_delay=50)
         self.enemies.add(enemy)
 
     def getLives(self):
         return self.lives
+
+    def getScore(self):
+        return self.score
+
+    def reset(self):
+
+        self.enemies = set()
+        self.bullets = set()
+        self.score = 0
+        self.lives = self.max_lives
