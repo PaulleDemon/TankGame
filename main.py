@@ -25,7 +25,7 @@ def main():
     global running
 
     time = 0
-    max_enemy = 5
+    max_enemy = 2
     game_over = False
     score = 0
 
@@ -57,11 +57,15 @@ def main():
             player.keyEvent(key_press)
             player.mouseEvent(pygame.mouse.get_pos())
 
-            if controller.getEnemyCount() < max_enemy or time + 1 % 100 == 0:
+            if controller.getEnemyCount() < max_enemy or (time + 1) % 8500 == 0:
                 controller.spawnEnemy()
 
-            if controller.getScore() + 1 % 25 == 0:
+            if score < controller.getScore():
+                score = controller.getScore()
+
+            if (score + 1) % 25 == 0:
                 max_enemy += 1
+                score += 1
 
             if checkWallCollision(player.getBbox()):
                 player.resetPreviousPos()
@@ -82,6 +86,10 @@ def main():
 
         background.update()
         controller.update()
+
+        for x in spawn_lst:
+            pygame.draw.circle(screen, (255, 150, 255), x, radius=30)
+
 
         for x in range(controller.getLives()):
             screen.blit(life_image, (50 + ((life_image.get_width() + 10) * x), 10))
@@ -115,7 +123,7 @@ if __name__ == "__main__":
     life_image = pygame.image.load(assets.LIFE)
 
     controller = Controller(screen, lives=lives)
-    player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=3.5, fire_speed=5,
+    player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=2, fire_speed=5,
                        fire_delay=50, fire_radius=320)
 
     controller.setPlayer(player)

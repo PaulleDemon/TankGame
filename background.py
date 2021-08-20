@@ -77,10 +77,7 @@ class BackgroundWall:
         self.bg_rect = bg_rect
 
         self._collision = False
-
         self.collision = Collision(img, split, wall_collision=True, wall_padding=(1, 1, 1, 1))
-        self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for x in
-                       range(len(self.collision.collision_points()))]
 
     def setPos(self, x, y):
         self.orgPos = list((x, y))

@@ -74,6 +74,7 @@ class Tank:
 
     def getBbox(self):
         rect = self.transformed_image.get_rect(center=(self.pos_x, self.pos_y))
+        # rect = self.tank_image.get_rect(center=(self.pos_x, self.pos_y))
         return rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]
 
     def getRectObject(self):

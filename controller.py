@@ -113,9 +113,9 @@ class Controller:
     def spawnEnemy(self):
 
         pos = choice(self.spawn_lst)
-        enemy = Enemy(follow_radius=500, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
-                      controller=self, speed=self.player.speed/2, fire_speed=self.player.fire_speed,
-                      fire_delay=50, fire_radius=300)
+        enemy = Enemy(follow_radius=250, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
+                      controller=self, speed=0.6, fire_speed=self.player.fire_speed,
+                      fire_delay=50, fire_radius=200)
         self.enemies.add(enemy)
 
     def getLives(self):
