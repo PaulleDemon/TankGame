@@ -64,6 +64,7 @@ class Background:
     def setPos(self, pos):
         self.bg_x, self.bg_y = pos
 
+
 class BackgroundWall:
 
     def __init__(self, img: str, screen, bg_rect, pos=(0, 0), speed: float = 0.5, split=(5, 5)):
@@ -92,9 +93,6 @@ class BackgroundWall:
         self.screen.blit(self.bg_image, (self.bg_x, self.bg_y))
 
         self.collision.setSpritePos(self.bg_x, self.bg_y)
-        for color, x in zip(self.colors, self.collision.collision_points()):  # uncomment this to get colourful rectangles
-            x = (x[0]+self.bg_x, x[1]+self.bg_y, x[2] - x[0], x[3] - x[1])
-            pygame.draw.rect(self.screen, color, pygame.Rect(x), width=3)
 
     def getCollisionObject(self):
         return self.collision

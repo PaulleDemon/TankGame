@@ -103,18 +103,19 @@ if __name__ == "__main__":
 
     pygame.init()
     pygame.display.set_caption("Tank Game")
+    pygame.display.set_icon( pygame.image.load(assets.PLAYER_TANK))
 
     screen = pygame.display.set_mode((1000, 600))
 
     running = True
 
-    bg_speed = 5
+    bg_speed = 3
     lives = 3
 
     life_image = pygame.image.load(assets.LIFE)
 
     controller = Controller(screen, lives=lives)
-    player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=5, fire_speed=5,
+    player = pl.Player(assets.PLAYER_TANK, screen, (250, 200), controller=controller, speed=3.5, fire_speed=5,
                        fire_delay=50, fire_radius=320)
 
     controller.setPlayer(player)
