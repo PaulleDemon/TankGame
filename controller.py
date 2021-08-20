@@ -1,6 +1,9 @@
+import pygame.mixer
+
 import assets
 from Tank import Bullet, Enemy
 from random import choice
+import sounds
 
 
 class Controller:
@@ -12,10 +15,13 @@ class Controller:
     obstacles = set()
     bg_x, bg_y = (0, 0) # background position
     prev_bg_x, prev_bg_y = (0, 0) # previous background position
+    bg_rect = 100
+    lives = 1
 
-    def __init__(self, screen, spawn_pos: list):
+    def __init__(self, screen, spawn_pos: list, lives):
         self.screen = screen
-        self.spwan_lst = spawn_pos
+        self.spawn_lst = spawn_pos
+        self.lives = lives
 
     def setPlayer(self, tank):
         self.player = tank
@@ -30,12 +36,10 @@ class Controller:
     def createBullet(self, tank_object, normal_pos, fire_pos, angle, radius, speed):
         bullet = Bullet(self.screen, tank_object, normal_pos, fire_pos, angle, radius, speed)
         self.bullets.add(bullet)
+        sounds.shoot_sound.play()
 
     def getPlayerPos(self):
         return self.player.pos()
-
-    def setBgPosChanged(self, changed: bool):
-        self.bg_pos_changed = changed
 
     def updateTanks(self):
         self.player.update()
@@ -61,6 +65,9 @@ class Controller:
             if bullet.destroyed():
                 self.bullets.remove(bullet)
 
+    def setBgRect(self, rect):
+        self.bg_rect = rect
+
     def checkCollision(self):
         """ checks for collision between tank, bullets and obstacles """
         for bullet in self.bullets.copy():
@@ -70,9 +77,11 @@ class Controller:
                     break
 
         for enemy in self.enemies:
+            # print(enemy.getRectObject())
             for _, collid in self.obstacles:
                 if collid.rect_collide(enemy.getBbox())[0]:
                     enemy.change_angle()
+
 
             if self.player.colliderect(enemy.getRectObject()):
                 self.player.resetPreviousPos()
@@ -80,25 +89,40 @@ class Controller:
 
         for bullet in self.bullets.copy():
             for tank in self.enemies.copy():
-                if tank != bullet.tankObject() and tank.colliderect(bullet.getRect()):
+                if bullet.tankObject() == self.player and tank.colliderect(bullet.getRect()):
                     self.enemies.remove(tank)
                     self.bullets.remove(bullet)
                     break
 
             if bullet.tankObject() != self.player and self.player.colliderect(bullet.getRect()):
                 self.bullets.remove(bullet)
-                print("HIT")
+                self.lives -= 1
+
+        # if self.lives == 0:
+        #     del self.player
+
+    def getEnemyCount(self):
+        return len(self.enemies)
 
     def update(self):
         self.update_bullets()
-        self.updateTanks()
         self.updateObstacles()
+        self.updateTanks()
         self.checkCollision()
+
+    def setSpawnlst(self, spawnlst):
+        self.spawn_lst = spawnlst
 
     def spawnEnemy(self):
 
-        pos = choice(self.spwan_lst)
-        print(pos)
-        enemy = Enemy(follow_radius=550, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
-                      controller=self, speed=self.player.speed/2, fire_speed=self.player.fire_speed) # todo: from here
+        # bg_x, bg_y = self.bg_x - self.prev_bg_y, self.bg_y - self.prev_bg_y
+        # self.spawn_lst = [(x + bg_x, y + bg_y) for x, y in self.spawn_lst]
+        # print(self.spawn_lst)
+        pos = choice(self.spawn_lst)
+        enemy = Enemy(follow_radius=50, pos=pos, screen=self.screen, img_path=assets.ENEMY_TANK,
+                      controller=self, speed=self.player.speed/2, fire_speed=self.player.fire_speed,
+                      fire_delay=50)  # todo: from here
         self.enemies.add(enemy)
+
+    def getLives(self):
+        return self.lives

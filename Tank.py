@@ -21,7 +21,7 @@ class Tank:
         self.time_counter = fire_delay
         self.controller = controller
 
-        self.tank_image = pygame.image.load(img_path).convert()#.convert_alpha()
+        self.tank_image = pygame.image.load(img_path).convert_alpha()
 
         self.transformed_image = self.tank_image
         self._rect = self.tank_image.get_rect()
@@ -105,7 +105,7 @@ class Enemy(Tank):
 
     def __init__(self, follow_radius, bg_pos=(0, 0), *args, **kwargs):
         super(Enemy, self).__init__(*args, **kwargs)
-        self.change_angle()
+        self.change_direction()
         self.start_time = pygame.time.get_ticks()
         self.max_time = 100
 
@@ -117,11 +117,14 @@ class Enemy(Tank):
 
         self.follow_player = False
 
-    def change_angle(self):
+    def change_direction(self):
         self.direction_x = math.cos(math.radians(self.angle+90)) * self.speed
         self.direction_y = math.sin(math.radians(self.angle-90)) * self.speed
 
         self.transformed_image = pygame.transform.rotate(self.tank_image, self.angle)
+
+    def change_angle(self):
+        self.angle += 30
 
     def setBgPos(self, bgpos):
         self.bg_x, self.bg_y = bgpos
@@ -135,7 +138,7 @@ class Enemy(Tank):
             self.max_time = random.randint(15000, 18000)
             self.angle = random.randint(0, 360)
 
-        self.change_angle()
+        self.change_direction()
 
         _, _, hyp = self._calcAdjHyp(playerpos)
 

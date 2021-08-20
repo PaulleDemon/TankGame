@@ -4,7 +4,7 @@ import pygame
 from typing import Tuple
 from pycollision import Collision
 
-# fixme: sometimes the background doesn't move
+# fixme: background moves to show black area
 
 
 class Background:
