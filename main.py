@@ -87,10 +87,6 @@ def main():
         background.update()
         controller.update()
 
-        for x in spawn_lst:
-            pygame.draw.circle(screen, (255, 150, 255), x, radius=30)
-
-
         for x in range(controller.getLives()):
             screen.blit(life_image, (50 + ((life_image.get_width() + 10) * x), 10))
 
